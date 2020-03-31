@@ -1,0 +1,125 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Jogo da Cobrinha</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+      <canvas id="screen" width="20" height="20"></canvas>
+      <div id="msg"></div>
+    
+    <br>
+    
+    
+    <script>
+      const screen = document.getElementById('screen')
+      const context = screen.getContext('2d')
+
+      function createGame(){
+        const state = {
+          numberBody: 1,
+          snake: {
+            'body0':{x:10,y:10}
+          },
+          fruit:{
+            'fruit':{
+              x:Math.floor(Math.random() * 20),
+              y:Math.floor(Math.random() * 20)
+            }
+          }
+        } 
+
+        function newBody(bodyId,Snakex,Snakey){
+          state.snake[bodyId] = {
+            x: Snakex,
+            y: Snakey
+          }
+          state.numberBody++;
+
+        }
+        function newFruit(){
+          state.fruit['fruit'].x = Math.floor(Math.random() * 20)
+          state.fruit['fruit'].y = Math.floor(Math.random() * 20)      
+        }
+
+        return {
+          newBody,
+          newFruit,
+          state
+        }   
+      }   
+      const game = createGame()
+
+      const firstSnakeId = 'body0'
+
+      function atualizaBody(oldX,oldY){
+        var proxX = oldX
+        var proxY = oldY
+        for(const currentSnakeId in game.state.snake){
+          if(currentSnakeId != firstSnakeId){
+            proxX = game.state.snake[currentSnakeId].x
+            proxY = game.state.snake[currentSnakeId].y
+            game.state.snake[currentSnakeId].x = oldX
+            game.state.snake[currentSnakeId].y = oldY
+            oldX = proxX
+            oldY = proxY
+          }
+        }
+        return
+      }
+
+      function movment(command){
+        const snake = game.state.snake[firstSnakeId]
+        var oldX = snake.x
+        var oldY = snake.y
+        if(command === 'ArrowUp' && snake.y - 1 >= 0){
+          snake.y -= 1 
+        }else if(command === 'ArrowDown' && snake.y + 1 < 20){
+          snake.y += 1 
+        }else if(command === 'ArrowRight' && snake.x + 1 < 20){
+          snake.x += 1 
+        }else if(command === 'ArrowLeft' && snake.x - 1 >= 0){
+          snake.x -= 1 
+        }
+        atualizaBody(oldX,oldY)
+        return
+      }
+
+      function conferePosicao(){
+        const Snake = game.state
+        if(Snake.snake['body0'].x === Snake.fruit['fruit'].x && Snake.snake['body0'].y === Snake.fruit['fruit'].y){
+          game.newBody('body'+Snake.numberBody,Snake.snake['body0'].x,Snake.snake['body0'].y)
+          game.newFruit()
+        }
+      }
+      var keyPress = "ArrowRight"
+      var placar = document.getElementById('msg')
+      function rotina(){
+        placar.innerHTML = `Seu placar é de ${game.state.numberBody-1}.`
+        movment(keyPress)
+        conferePosicao()
+        renderScreen()
+      }
+      document.addEventListener('keydown',handleKeydown)
+      function handleKeydown(event){
+          keyPress = event.key
+          return
+      }
+      
+      function renderScreen(){
+        context.clearRect(0,0,20,20)
+        for(const bodyId in game.state.snake){
+          const snake = game.state.snake[bodyId]
+          context.fillStyle = '#0f0'
+          context.fillRect(snake.x,snake.y,1,1)
+        }
+        for(const fruitId in game.state.fruit){
+          const fruit = game.state.fruit[fruitId]
+          context.fillStyle = '#000'
+          context.fillRect(fruit.x,fruit.y,1,1)
+        }
+      }
+      setInterval(rotina,100)
+    </script>
+  </body>
+</html>
